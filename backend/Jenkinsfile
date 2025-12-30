@@ -1,0 +1,73 @@
+pipeline {
+    agent any
+    
+    environment {
+        IMAGE_NAME = 'vocalize-backend'
+        CONTAINER_NAME = 'vocalize-api'
+        PORT = '1738'
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        
+        stage('Build Docker Image') {
+            steps {
+                dir('backend') {
+                    script {
+                        sh 'docker build -t ${IMAGE_NAME}:latest .'
+                    }
+                }
+            }
+        }
+        
+        stage('Stop Old Container') {
+            steps {
+                script {
+                    sh '''
+                        if [ $(docker ps -a -q -f name=${CONTAINER_NAME}) ]; then
+                            docker stop ${CONTAINER_NAME}
+                            docker rm ${CONTAINER_NAME}
+                        fi
+                    '''
+                }
+            }
+        }
+        
+        stage('Deploy') {
+            steps {
+                script {
+                    sh '''
+                        docker run -d \
+                        --name ${CONTAINER_NAME} \
+                        -p ${PORT}:8000 \
+                        -v $(pwd)/backend/uploads:/app/uploads \
+                        -v $(pwd)/backend/outputs:/app/outputs \
+                        --restart unless-stopped \
+                        ${IMAGE_NAME}:latest
+                    '''
+                }
+            }
+        }
+        
+        stage('Cleanup Old Images') {
+            steps {
+                script {
+                    sh 'docker image prune -f'
+                }
+            }
+        }
+    }
+    
+    post {
+        success {
+            echo 'Deployment successful!'
+        }
+        failure {
+            echo 'Deployment failed!'
+        }
+    }
+}

@@ -1,0 +1,25 @@
+# Python
+backend/venv/
+backend/__pycache__/
+backend/*.pyc
+backend/uploads/*
+backend/outputs/*
+!backend/uploads/.gitkeep
+!backend/outputs/.gitkeep
+
+# Node
+frontend/node_modules/
+frontend/.expo/
+
+# iOS
+frontend/ios/Pods/
+frontend/ios/build/
+
+# Android
+frontend/android/.gradle/
+frontend/android/build/
+frontend/android/app/build/
+
+# Environment
+.env
+*.log
